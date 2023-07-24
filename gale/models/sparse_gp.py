@@ -1,31 +1,19 @@
 """
 GALe - Global Adaptive Learning
-
-Created on 25-05-2022
 @author: Sven Lämmle
 
-Models - Gaussian Process Regression
+Models - Sparse Variational Gaussian Process Regression
 """
 import warnings
 from typing import Optional, Tuple, Union
 
 import numpy as np
-
-# from GPy.models import SparseGPRegression
 from GPy.core import SVGP
 from GPy.kern import Matern32
 from GPy.likelihoods import Gaussian
-from scipy.spatial.distance import cdist
 
 from gale._typing import ARRAY_LIKE_2D
 from gale.models.surrogate import SurrogateRegressionModel
-
-
-def get_lhs_inducing_points(X: np.ndarray, num_inducing: int) -> np.ndarray:
-    d = cdist(X, X)
-    np.fill_diagonal(d, np.inf)
-    index = np.argsort(np.min(d, axis=0))[::-1][:num_inducing]
-    return X[index]
 
 
 def get_inducing_points(
@@ -56,9 +44,6 @@ def get_inducing_points(
         max_length x d tensor of the training inputs corresponding to the top
         max_length pivots of the training kernel matrix
     """
-    # if num_inducing >= X.shape[0]:  # use all points
-    #     return X
-
     kernel_matrix = kernel.K(X)
     quality_scores = np.ones(X.shape[0], dtype=X.dtype)
 
@@ -92,7 +77,13 @@ def get_inducing_points(
 
 class SparseGPRegressor(SurrogateRegressionModel):
     """
-    Add additional functionality to sklearn GP
+    Sparse variational Gaussian Process Regression
+
+    References
+    ----------
+    James Hensman and Nicolo Fusi and Neil D. Lawrence, Gaussian Processes
+    for Big Data, Proceedings of the 29th Conference on Uncertainty in
+    Artificial Intelligence, 2013, https://arxiv.org/abs/1309.6835.
     """
 
     model_name = "Sklearn - GP Regression"
@@ -164,21 +155,17 @@ class SparseGPRegressor(SurrogateRegressionModel):
         """
         Condition model on new observations without refitting
         """
-        # X, y = self.check_input(X, y)
         if len(y.shape) == 1:
             y = y[:, None]
         if self.normalize_y:
             y = self._normalize(y)
 
-        # Z = get_inducing_points(X, self.model.kern, self.num_inducing)
         self.model.set_XY(X, y)
-        # self.model.set_Z(Z)
 
         return self
 
     def fit(self, X, y, filter_warning: bool = True):
 
-        # X, y = self.check_input(X, y)
         if len(y.shape) == 1:
             y = y[:, None]
         dim = X.shape[-1]
@@ -189,13 +176,11 @@ class SparseGPRegressor(SurrogateRegressionModel):
         kernel = self.kernel(input_dim=dim, ARD=True)
 
         Z = get_inducing_points(X, kernel, self.num_inducing)
-        # Z = get_lhs_inducing_points(X, self.num_inducing)
 
         likelihood = Gaussian(variance=1e-4)
 
         self.model = SVGP(X, y, Z=Z, kernel=kernel, likelihood=likelihood)
 
-        # self.model.Gaussian_noise.variance.constrain_bounded(1e-8, 1e-5)
         self.model.kern.variance.constrain_fixed(1.0)
         self.model.Gaussian_noise.variance.constrain_fixed(1e-4)
 
@@ -206,7 +191,6 @@ class SparseGPRegressor(SurrogateRegressionModel):
             self.model.optimize_restarts(
                 5, optimizer="lbfgsb", verbose=False, max_iters=2000, robust=True
             )
-            # self.model.optimize(optimizer="lbfgsb", max_iters=2000)
 
         return self
 
