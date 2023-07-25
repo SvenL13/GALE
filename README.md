@@ -1,6 +1,8 @@
 GALe - A Python Library for Global Adaptive Learning
 ====================================================
 
+<img src="resources/guess_gp_anim.gif" width="500" height="300"/>
+
 ## What is it?
 **GALe** is a Python package providing tools for using 
 adaptive sampling strategies to create globally accurate
@@ -89,7 +91,7 @@ volume = {415},
 pages = {116226},
 year = {2023},
 issn = {0045-7825},
-doi = {https://doi.org/10.1016/j.cma.2023.116226},
+doi = {10.1016/j.cma.2023.116226},
 url = {https://www.sciencedirect.com/science/article/pii/S004578252300350X},
 author = {Sven Lämmle and Can Bogoclu and Kevin Cremanns and Dirk Roos},
 keywords = {Adaptive sampling, Bayesian optimization, Design of experiments, Gaussian process, ANN},
