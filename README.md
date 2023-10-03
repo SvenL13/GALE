@@ -99,5 +99,8 @@ abstract = {Surrogate models based on machine learning methods have become an im
 }
 ```
 
+- Article: [Elsevier Computer Methods in Applied Mechanics and Engineering](https://www.sciencedirect.com/science/article/pii/S004578252300350X)
+- Preprint: [ArXiv](https://arxiv.org/abs/2310.00110)
+
 ## Contribution
 All contributions are welcome. Feel free to contact me.
